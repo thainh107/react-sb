@@ -7,6 +7,7 @@ import Settings from '../screens/Settings';
 import UserDetail from '../screens/UserDetail';
 import Me from '../screens/Me';
 
+
 export const FeedStack = StackNavigator({
   Feed: {
     screen: Feed,
