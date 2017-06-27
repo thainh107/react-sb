@@ -20,12 +20,13 @@ const styles = StyleSheet.create({
 });
 // Initialize Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCoPVnk7mhwow2VdhqEnAVigK3Xyllm6A4",
-  authDomain: "cudauuat.firebaseapp.com",
-  databaseURL: "https://cudauuat.firebaseio.com",
+  apiKey: "AIzaSyAh8D8OcCeDa01G_AWjfWU0wwaqcbcpkJg",
+  authDomain: "cudaustream.firebaseapp.com",
+  databaseURL: "https://cudaustream.firebaseio.com",
   storageBucket: "cudaustream.appspot.com"
 };
 const firebaseApp = firebase.initializeApp(firebaseConfig);
+
 
 
 class Feed extends Component {
@@ -35,6 +36,20 @@ class Feed extends Component {
     this.state = {
       isLoading: true
     }
+
+  }
+  getLinkAvatarFromUserName(nickname) {
+    return firebase.database().ref(`/userList/${nickname}`).once('value')
+      .then(snapshot => {
+        if(snapshot.val().avatar){
+          return this.getAvatar(snapshot.val().avatar);
+        }
+      });
+  }
+  getAvatar(response) {
+    return firebase.storage().ref(response).getDownloadURL().then((url) => {
+      return url;
+    });
   }
 
   componentDidMount() {
@@ -46,35 +61,41 @@ class Feed extends Component {
     })
       .then((response) => response.json())
       .then((responseJson) => {
+        var arr = [];
+        for (var key in responseJson) {
+          if (responseJson.hasOwnProperty(key)) {
+            // console.log(responseJson[key].createdBy);
+            this.getLinkAvatarFromUserName(responseJson[key].createdBy).then((linkAvatar)=>{
+              if(linkAvatar){
+                responseJson[key].linkAvatar = linkAvatar;
+              } else {
+                responseJson[key].linkAvatar = '';
+              }
+            });
+            responseJson[key].key = key;
+          }
+        }
+        
         console.log(responseJson);
-
+        // this.getLinkAvatarFromUserName(responseJson.)
+        // this.getAvatar(responseJson);
+        var hello = responseJson;
+        console.log(hello)
         let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
         this.setState({
           isLoading: false,
           dataSource: ds.cloneWithRows(responseJson)
         })
       })
-    // firebaseApp.database().ref(`postsByNickname/HaoHaoChuaCay`).once('value')
-    //   .then((snap) => {
-    //     console.log(snap.val());
-    //     this.setState({
-    //       isLoading: false,
-    //       dataSource: ds.cloneWithRows(snap.val()),
-    //     }, function () {
-    //       // do something with new state
-    //     });
-    //   });
-    // })
-    // .catch((error) => {
-    //   console.error(error);
-    // });
+
   }
+  
 
   render() {
-    
+
     if (this.state.isLoading) {
       return (
-        <View styls={{ flex: 1, paddingTop: 20 }}>
+        <View style={{ flex: 1, paddingTop: 20 }}>
           <ActivityIndicator />
         </View>
       );
